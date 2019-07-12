@@ -49,7 +49,7 @@ public class Main {
                 .getJSONObject(0)
                 .getJSONArray("datas");
 
-        result = sort(result);
+//        result = sort(result);
 
         StringBuilder sb = new StringBuilder();
         sb.append("\033[H\033[2J");
@@ -108,7 +108,7 @@ public class Main {
         String s = "";
         for (int i = 0; i < 20; i++) {
             if(i == indicator) {
-                s+=ConsoleColors.YELLOW_BOLD_BRIGHT+"+"+ConsoleColors.RESET;
+                s+="+";
             } else {
                 s+="-";
             }
