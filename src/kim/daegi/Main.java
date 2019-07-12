@@ -52,7 +52,7 @@ public class Main {
 
         StringBuilder sb = new StringBuilder();
         sb.append("\033[H\033[2J");
-        sb.append(String.format(ConsoleColors.CYAN_UNDERLINED+"%-7s%10s%11s%10s%7s %-15s\033[0m\n", "Symbol", "Price", "Diff", "Percent", "Status", "Name"));
+        sb.append(String.format(ConsoleColors.CYAN_UNDERLINED+"%-7s%10s%11s%10s%15s%16s%7s %-15s\033[0m\n", "Symbol", "Price", "Diff", "Percent", "Volume", "TXN Price", "Status", "Name"));
 
         for (int i = 0; i < result.length(); i++) {
             JSONObject data = result.getJSONObject(i);
@@ -63,6 +63,8 @@ public class Main {
             String marketState = data.optString("ms");
 
             double sv = data.optDouble("sv");
+            double aq = data.optDouble("aq");
+            double aa = data.optDouble("aa");
             double regularMarketPrice = data.optDouble("nv");
 
             double regularMarketDayHigh = data.optDouble("hv");
@@ -87,6 +89,8 @@ public class Main {
 
             sb.append(String.format(color+"%11s"+ConsoleColors.RESET, String.format("%,.0f", regularMarketChange)+" "+(regularMarketChange>0?"▲":regularMarketChange<0?"▼":"-")));
             sb.append(String.format(color+"%10s"+ConsoleColors.RESET, String.format("(%.2f%%)", regularMarketChangePercent)));
+            sb.append(String.format("%,15.0f", aq));
+            sb.append(String.format("%,16.0f", aa));
             sb.append(String.format("%7s", marketState));
             sb.append(String.format(" %-15s\n", shortName));
         }
