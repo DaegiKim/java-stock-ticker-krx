@@ -13,6 +13,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +53,7 @@ public class Main {
 
         StringBuilder sb = new StringBuilder();
         sb.append("\033[H\033[2J");
-        sb.append(String.format(ConsoleColors.CYAN_UNDERLINED+"%-7s%10s%11s%10s%15s%16s%7s %-15s\033[0m\n", "Symbol", "Price", "Diff", "Percent", "Volume", "TXN Price", "Status", "Name"));
+        sb.append(String.format(ConsoleColors.CYAN_UNDERLINED+"%-7s%8s%11s%10s%15s%16s%7s%21s %-15s\033[0m\n", "Symbol", "Price", "Diff", "Percent", "Volume", "TXN Price", "Status", "Daily Range", "Name"));
 
         for (int i = 0; i < result.length(); i++) {
             JSONObject data = result.getJSONObject(i);
@@ -65,8 +66,8 @@ public class Main {
             double sv = data.optDouble("sv");
             double aq = data.optDouble("aq");
             double aa = data.optDouble("aa");
-            double regularMarketPrice = data.optDouble("nv");
 
+            double regularMarketPrice = data.optDouble("nv");
             double regularMarketDayHigh = data.optDouble("hv");
             double regularMarketDayLow = data.optDouble("lv");
 
@@ -81,10 +82,12 @@ public class Main {
 
             sb.append(String.format("%-7s", symbol));
 
-            if(regularMarketDayHigh == regularMarketPrice || regularMarketDayLow == regularMarketPrice) {
-                sb.append(String.format(ConsoleColors.WHITE_BOLD+color+"%,10.0f"+ConsoleColors.RESET, regularMarketPrice));
+            if(regularMarketDayHigh == regularMarketPrice) {
+                sb.append(String.format(ConsoleColors.GREEN_BOLD_BRIGHT+"%,8.0f"+ConsoleColors.RESET, regularMarketPrice));
+            } else if(regularMarketDayLow == regularMarketPrice) {
+                sb.append(String.format(ConsoleColors.RED_BOLD_BRIGHT+"%,8.0f"+ConsoleColors.RESET, regularMarketPrice));
             } else {
-                sb.append(String.format(ConsoleColors.WHITE_BOLD+"%,10.0f"+ConsoleColors.RESET, regularMarketPrice));
+                sb.append(String.format(ConsoleColors.WHITE_BOLD+"%,8.0f"+ConsoleColors.RESET, regularMarketPrice));
             }
 
             sb.append(String.format(color+"%11s"+ConsoleColors.RESET, String.format("%,.0f", regularMarketChange)+" "+(regularMarketChange>0?"▲":regularMarketChange<0?"▼":"-")));
@@ -92,9 +95,27 @@ public class Main {
             sb.append(String.format("%,15.0f", aq));
             sb.append(String.format("%,16.0f", aa));
             sb.append(String.format("%7s", marketState));
+            sb.append(String.format("%21s", drawPriceRange(regularMarketDayLow, regularMarketDayHigh, regularMarketPrice)));
             sb.append(String.format(" %-15s\n", shortName));
         }
         System.out.print(sb);
+    }
+
+    private static String drawPriceRange(double low, double high, double current) {
+        int indicator = (int) ((current - low) / (high - low) * 20);
+        indicator = indicator==20?indicator-1:indicator;
+
+        String s = "";
+        for (int i = 0; i < 20; i++) {
+            if(i == indicator) {
+                s+=ConsoleColors.YELLOW_BOLD_BRIGHT+"+"+ConsoleColors.RESET;
+            } else {
+                s+="-";
+            }
+        }
+        s+="";
+
+        return s;
     }
 
     private static JSONArray sort(JSONArray result) {
