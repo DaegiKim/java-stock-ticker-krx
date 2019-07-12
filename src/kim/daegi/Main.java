@@ -13,7 +13,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,13 +52,12 @@ public class Main {
 
         StringBuilder sb = new StringBuilder();
         sb.append("\033[H\033[2J");
-        sb.append(String.format(ConsoleColors.CYAN_UNDERLINED+"%-7s%8s%11s%10s%15s%16s%7s%21s %-15s\033[0m\n", "Symbol", "Price", "Diff", "Percent", "Volume", "TXN Price", "Status", "Daily Range", "Name"));
+        sb.append(String.format(ConsoleColors.CYAN_UNDERLINED+"%-7s%7s%15s%16s%8s%11s%10s%21s %-15s\033[0m\n", "Symbol", "Status", "Volume", "TXN Price", "Price", "Diff", "Percent", "Candle", "Name"));
 
         for (int i = 0; i < result.length(); i++) {
             JSONObject data = result.getJSONObject(i);
 
             String shortName = data.optString("nm");
-
             String symbol = data.optString("cd");
             String marketState = data.optString("ms");
 
@@ -70,17 +68,20 @@ public class Main {
             double regularMarketPrice = data.optDouble("nv");
             double regularMarketDayHigh = data.optDouble("hv");
             double regularMarketDayLow = data.optDouble("lv");
+            double ov = data.optDouble("ov");
 
             double regularMarketChange = data.optDouble("cv");
-            regularMarketChange = sv>regularMarketPrice?-regularMarketChange:regularMarketChange;
+            regularMarketChange = sv > regularMarketPrice ? -regularMarketChange : regularMarketChange;
 
             double regularMarketChangePercent = data.optDouble("cr");
-            regularMarketChangePercent = sv>regularMarketPrice?-regularMarketChangePercent:regularMarketChangePercent;
-
+            regularMarketChangePercent = sv > regularMarketPrice ? -regularMarketChangePercent : regularMarketChangePercent;
 
             String color = regularMarketChange==0?"":regularMarketChange>0?ConsoleColors.GREEN_BOLD_BRIGHT:ConsoleColors.RED_BOLD_BRIGHT;
 
             sb.append(String.format("%-7s", symbol));
+            sb.append(String.format("%7s", marketState));
+            sb.append(String.format("%,15.0f", aq));
+            sb.append(String.format("%,16.0f", aa));
 
             if(regularMarketDayHigh == regularMarketPrice) {
                 sb.append(String.format(ConsoleColors.GREEN_BOLD_BRIGHT+"%,8.0f"+ConsoleColors.RESET, regularMarketPrice));
@@ -92,30 +93,38 @@ public class Main {
 
             sb.append(String.format(color+"%11s"+ConsoleColors.RESET, String.format("%,.0f", regularMarketChange)+" "+(regularMarketChange>0?"▲":regularMarketChange<0?"▼":"-")));
             sb.append(String.format(color+"%10s"+ConsoleColors.RESET, String.format("(%.2f%%)", regularMarketChangePercent)));
-            sb.append(String.format("%,15.0f", aq));
-            sb.append(String.format("%,16.0f", aa));
-            sb.append(String.format("%7s", marketState));
-            sb.append(String.format("%21s", drawPriceRange(regularMarketDayLow, regularMarketDayHigh, regularMarketPrice)));
+            sb.append(candle(regularMarketDayLow, regularMarketDayHigh, regularMarketPrice, ov, color));
             sb.append(String.format(" %-15s\n", shortName));
         }
         System.out.print(sb);
     }
 
-    private static String drawPriceRange(double low, double high, double current) {
-        int indicator = (int) ((current - low) / (high - low) * 20);
-        indicator = indicator==20?indicator-1:indicator;
-
-        String s = "";
-        for (int i = 0; i < 20; i++) {
-            if(i == indicator) {
-                s+="+";
-            } else {
-                s+="-";
-            }
+    private static String candle(double low, double high, double current, double ov, String crColor) {
+        if(low == 0) {
+            return String.format("%21s", "");
         }
-        s+="";
 
-        return s;
+        final int sizeOfChart = 20;
+
+        int indicator = (int) ((current - low) / (high - low) * sizeOfChart);
+        indicator = indicator==sizeOfChart?indicator-1:indicator;
+
+        int prevIndicator = (int) ((ov - low) / (high - low) * sizeOfChart);;
+        prevIndicator = prevIndicator==sizeOfChart?prevIndicator-1:prevIndicator;
+
+        StringBuilder sb = new StringBuilder(" ");
+        String color = current>ov?ConsoleColors.GREEN_BOLD_BRIGHT:current<ov?ConsoleColors.RED_BOLD_BRIGHT:crColor;
+        sb.append(color);
+
+        int lowIndex = Math.min(indicator, prevIndicator);
+        int highIndex = Math.max(indicator, prevIndicator);
+
+        for (int i = 0; i < sizeOfChart; i++) {
+            sb.append(i==indicator?"█":i>=lowIndex&&i<=highIndex?"■":"─");
+        }
+        sb.append(ConsoleColors.RESET);
+
+        return sb.toString();
     }
 
     private static JSONArray sort(JSONArray result) {
