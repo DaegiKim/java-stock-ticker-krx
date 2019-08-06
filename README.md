@@ -18,11 +18,11 @@ First, build the project to generate the jar file.
 ```sh
 # Single symbol with refresh interval 250 millis:
 # 예) 단일 코드, 새로고침 간격 0.25초:
-$ java -jar ./java-stock-ticker-krx.jar 250 207760  
+$ java -jar ./java-stock-ticker-krx.jar -i 250 -s 207760  
  
 # Multiple symbols with refresh interval 250 millis:
 # 예) 다중 코드, 새로고침 간격 0.25초:
-$ java -jar ./java-stock-ticker-krx.jar 250 100030 101730 105550 115440 115450
+$ java -jar ./java-stock-ticker-krx.jar -i 250 -s 100030 101730 105550 115440 115450
 ```
 
 #### Note
