@@ -10,8 +10,10 @@ Real-time stock tickers from the command-line based on Java
 ## Requirements
 - Java 10+
 - Dependencies
+  - commons-cli:commons-cli:1.4
   - org.apache.httpcomponents:httpclient:4.5.9
   - org.json:json:20180813
+  - org.jsoup:jsoup:1.11.3
 
 ## Usage
 First, build the project to generate the jar file.
